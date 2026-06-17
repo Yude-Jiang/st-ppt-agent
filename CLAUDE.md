@@ -1,4 +1,4 @@
-# [项目名称]
+# ST PPT Agent
 
 <!-- /init 填充 [方括号] 内容。手动创建时逐段填写。 -->
 
@@ -112,57 +112,74 @@ scripts/{data-source}/transform-{source}.py
 
 ## 项目信息
 
-- **描述**: [一句话说明项目做什么、给谁用]
-- **部署**: Cloud Run `[service-name]` on `st-china-ai-force` / `asia-east1`
-- **技术栈**: [React+Vite / Flask / Express+React / Python scripts]
+- **描述**: 粘贴产品/技术文案 → AI 自动拆页规划 → 用户微调确认 → 生成可下载的 ST 品牌合规 .pptx，给 ST 内部市场/销售/产品线同事用
+- **部署**: Cloud Run `st-ppt-agent` on `st-china-ai-force` / `asia-east1`
+- **技术栈**: React + Vite（前端） + Python FastAPI（后端） + python-pptx（渲染层）
 - **线上 URL**: [部署后填写]
-- **GitHub**: [repo URL]
+- **GitHub**: https://github.com/Yude-Jiang/st-ppt-agent
 
 ## 架构概览
 
 ### 主要模块
 
 ```
-[模块 1]: [职责]
-[模块 2]: [职责]
-[模块 3]: [职责]
+frontend (React+Vite):  文案输入 → SlidePlan 展示与字段级微调 → 下载触发
+backend (FastAPI):      异步任务管理（提交→轮询）、DeepSeek 调用、Pydantic Schema 校验、渲染调度
+builder (python-pptx):  复用 st-ppt-brand skill 的 builder 函数，按 archetype 渲染 .pptx
+storage (GCS):          存储 GeneratedDeck .pptx，带签名 URL 公开下载，7 天 TTL
 ```
 
 ### 关键文件
 
 ```
-[path/to/main-entry]  — [说明]
-[path/to/config]       — [说明]
+backend/main.py              — FastAPI 入口，任务队列，路由注册
+backend/planner.py           — DeepSeek 调用 + Pydantic SlidePlan Schema 校验 + 重试逻辑
+backend/builder/             — python-pptx builder 函数（从 st-ppt-brand skill 复用）
+backend/models.py            — Pydantic 模型：Submission / SlidePlan / SlidePlanItem / GeneratedDeck
+frontend/src/pages/Home/     — 文案输入页
+frontend/src/pages/Review/   — SlidePlan 微调确认页
+frontend/src/api/tasks.js    — 轮询任务状态的 API 封装
 ```
 
 ## 项目特定代码规范
 
-<!-- 仅当全局规范不够时追加。优先遵守全局规范。 -->
-
-- [规范 1]
+- DeepSeek 调用必须使用 OpenAI-compatible SDK，model ID 固定为 `deepseek-chat`
+- LLM 输出的拆页规划必须用 Pydantic 校验，每个 archetype 的必填字段在 prompt 中明确列出
+- 前端请求拆页规划必须走异步任务模式（提交→轮询），不使用同步阻塞 fetch 等待 LLM 结果
+- archetype 枚举值必须与 `st-ppt-brand` skill 中的定义完全一致，不得硬编码字符串
+- builder 函数从 `st-ppt-brand` skill 复用，不在本项目中重新实现渲染逻辑
 
 ## 项目特定约束
 
-<!-- 本项目独有的约束,不适用于其他项目 -->
-
-- [约束 1]
+- layout archetype 只能使用 `st-ppt-brand` skill 定义的 11 个，LLM prompt 必须附上完整枚举列表
+- 字数熔断阈值（Pydantic validator 层强制）：标题 ≤18 字、单条 bullet ≤40 字、单页 bullet ≤5 条
+- `user_edited=True` 的 SlidePlanItem 在任何 LLM 重新规划时必须跳过/保留，不得覆盖
+- SlidePlan status 为 `draft` 时，后端不得接受渲染请求；必须 `confirmed` 才能触发 builder
+- GeneratedDeck .pptx 文件：GCS 7 天 TTL，下载链接为带签名公开 URL（无需登录）
+- 日志不记录原始文案和生成内容，只记录 task_id + status + 耗时
+- python-pptx 生成文件需在 Windows/Mac/Web PowerPoint 三端测试，不能只验一端
 
 ## 项目已知坑
 
 <!-- 开发中发现的坑,持续追加。跨项目通用的教训同步到 PART 1 的 Learnings。 -->
 <!-- 格式: [日期] 现象 → 根因 → 修复 -->
 
+- [2026-06] 浏览器 fetch 默认超时（通常 30-60s）比 Cloud Run 超时更早触发 → LLM 拆页规划必须异步任务模式，前端轮询而非等待单次 HTTP 响应
+
 ## 常用命令
 
 ```bash
-# 开发
-[npm run dev / python app.py]
+# 开发（前端）
+cd frontend && npm run dev
+
+# 开发（后端）
+cd backend && uvicorn main:app --reload --port 8080
 
 # 构建
-[npm run build]
+cd frontend && npm run build
 
 # 测试
-[npm test / pytest]
+cd backend && pytest
 
 # 部署
 /deploy
