@@ -168,8 +168,8 @@ class ArchetypeEnum(str, Enum):
     SECTION_DIVIDER = "section-divider"
 ```
 
-## Open Questions
+## Decisions（原 Open Questions）
 
-- [ ] `replan` 接口触发后任务状态回退为 `planning`，前端需重新进入轮询态——确认这个 UX 是否符合预期，还是应该局部刷新（只重新规划未编辑的页）？
-- [ ] 任务存储：MVP 用内存字典（重启丢失）还是 Redis（跨实例持久）？Cloud Run 单实例下内存可行，但扩容后会有问题。
-- [ ] archetype 枚举的"兼容"规则：用户更换某页 archetype 时，哪些 archetype 算"兼容"（内容字段结构相近）？需要在 BUILD 阶段定义兼容矩阵，或直接允许切换任意 archetype（内容字段清空重填）。
+- [x] **replan UX**：局部刷新——`replan` 触发后，只对未标记 `user_edited` 的项重新规划，已编辑项保持原样展示，不进入全量 `planning` 加载态。前端对这批页做局部 loading 状态即可。
+- [x] **任务存储**：MVP 用内存字典。**前提条件**：Cloud Run 必须配置为单实例（`--max-instances=1`）。如果未来开启多实例自动扩容，必须先切换到 Redis 或等价的跨实例存储；否则同一批任务可能落在不同实例，出现状态不一致（不报错但结果错误）。此前提已写入 CLAUDE.md 项目已知坑。
+- [x] **archetype 切换规则**：BUILD 阶段定义兼容矩阵。每个 archetype 标注可兼容切换的目标 archetype 列表（字段结构相近、内容可平移），前端"更换版式"下拉只显示兼容项。兼容矩阵在 `backend/models.py` 中以常量定义，BUILD 阶段补充。
