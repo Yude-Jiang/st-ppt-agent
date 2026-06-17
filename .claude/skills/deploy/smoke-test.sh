@@ -36,7 +36,7 @@ check() {
   actual_status=$(echo "$resp" | tail -n1)
   local headers
   headers=$(echo "$resp" | sed '$d')
-  rm -f /tmp/smoke_body.$$
+  rm -f /tmp/smoke_body.$$a
 
   if [[ "$actual_status" != "$expected_status" ]]; then
     echo "  [FAIL] $description ($url → $actual_status, expected $expected_status)"
