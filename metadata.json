@@ -1,0 +1,11 @@
+{
+  "name": "Vibe Coding Template",
+  "description": "A reusable template for loop engineering: quality gates, KPI weekly reporting, smoke checks, and rollback runbook.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "CI quality gate",
+    "Loop KPI report",
+    "Deploy smoke verification",
+    "Rollback runbook"
+  ]
+}

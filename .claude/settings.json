@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": { "tool_name": "write_file" },
+        "command": "bash -c 'MISSING=\"\"; [ ! -s DOMAIN.md ] && grep -q \"填写引导\\|占位符\\|TODO\\|⚠️ 本文件为骨架\" DOMAIN.md 2>/dev/null && MISSING=\"$MISSING DOMAIN.md(未填充)\"; [ ! -s DOMAIN.md ] && MISSING=\"$MISSING DOMAIN.md(不存在)\"; [ ! -s CLAUDE.md ] && MISSING=\"$MISSING CLAUDE.md\"; if [ -n \"$MISSING\" ]; then echo \"⛔ Context 文件未就绪:$MISSING\"; echo \"请先运行 /init 完成项目初始化，再开始写代码。\"; exit 2; fi'",
+        "timeout_ms": 3000
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": { "tool_name": "write_file" },
+        "command": "bash -c 'if command -v npm &>/dev/null && [ -f package.json ]; then npm run lint --silent 2>&1 | head -20; elif command -v python3 &>/dev/null && [ -f pyproject.toml ]; then python3 -m ruff check --quiet 2>&1 | head -20; fi'",
+        "timeout_ms": 15000
+      }
+    ],
+    "Stop": [
+      {
+        "command": "bash -c 'if command -v npm &>/dev/null && [ -f package.json ]; then npm test --silent 2>&1 | tail -10; fi'",
+        "timeout_ms": 30000
+      },
+      {
+        "command": "bash -c 'echo \"## Session $(date +%Y-%m-%d_%H:%M)\" >> PROGRESS.md && git diff --stat HEAD~1 >> PROGRESS.md 2>/dev/null; echo \"---\" >> PROGRESS.md'",
+        "timeout_ms": 5000
+      }
+    ]
+  },
+  "agents": {
+    "spec-reviewer": {
+      "prompt": "你是 spec 审查员。检查 PRD/TDD/DOMAIN.md 是否满足:\n1) 有可量化的验收标准（不是"正常运行"，是"返回200且latency<500ms"）\n2) 有 ROI 估算\n3) TDD 架构和 CLAUDE.md 约束不冲突\n4) DOMAIN.md 术语表和代码命名一致\n5) smoke-test.sh 语法正确（bash -n）\n6) 文件结构符合 CLAUDE.md 代码规范\n输出 PASS/FAIL + 具体问题列表。",
+      "allowedTools": ["read", "bash"]
+    }
+  }
+}

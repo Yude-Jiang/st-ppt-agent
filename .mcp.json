@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT_HERE"
+      },
+      "_comment": "权限: repo + read:org。生成地址: https://github.com/settings/tokens"
+    },
+    "gcloud": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/gcloud-mcp-server"],
+      "_comment": "需要本机已 gcloud auth login 且有 st-china-ai-force 项目权限"
+    }
+  }
+}
