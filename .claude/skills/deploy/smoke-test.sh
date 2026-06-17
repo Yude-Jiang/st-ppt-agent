@@ -11,8 +11,18 @@ fi
 # TODO: replace with your actual base URLs
 case "$ENVIRONMENT" in
   local)      BASE_URL="http://localhost:8080" ;;
-  staging)    BASE_URL="https://st-ppt-agent-staging-PLACEHOLDER.asia-east1.run.app" ;;
-  production) BASE_URL="https://st-ppt-agent-PLACEHOLDER.asia-east1.run.app" ;;
+  staging|production)
+    # Cloud Run URL is fetched dynamically after deployment; gcloud must be authenticated
+    SVC="st-ppt-agent"
+    [[ "$ENVIRONMENT" == "staging" ]] && SVC="st-ppt-agent-staging"
+    BASE_URL=$(gcloud run services describe "$SVC" \
+      --project st-china-ai-force \
+      --region asia-east1 \
+      --format 'value(status.url)' 2>/dev/null) || true
+    if [[ -z "$BASE_URL" ]]; then
+      echo "ERROR: could not resolve Cloud Run URL for $ENVIRONMENT (is gcloud authenticated?)" >&2
+      exit 1
+    fi ;;
   *)
     echo "Unknown environment: $ENVIRONMENT" >&2
     exit 1
