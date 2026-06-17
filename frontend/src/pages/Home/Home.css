@@ -1,0 +1,116 @@
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.home-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  padding: 48px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.home-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #E31837;
+  margin-bottom: 8px;
+}
+
+.home-subtitle {
+  color: #666;
+  margin-bottom: 32px;
+  font-size: 1rem;
+}
+
+.home-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.home-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.home-textarea:focus {
+  border-color: #E31837;
+}
+
+.home-textarea:disabled {
+  background: #f9f9f9;
+  color: #999;
+}
+
+.home-options {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.home-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.home-slides-input {
+  width: 100px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.home-slides-input:focus {
+  border-color: #E31837;
+}
+
+.home-error {
+  background: #fff0f0;
+  border: 1px solid #ffcccc;
+  color: #cc0000;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.home-btn {
+  background: #E31837;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-btn:hover:not(:disabled) {
+  background: #c01530;
+}
+
+.home-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
