@@ -125,10 +125,11 @@
 - [x] 确认技术路径 — 两段式生成（明确输入类型走模板直填，其余走 LLM 辅助），Python 后端 +
       python-pptx 复用 st-ppt-brand skill 的 builder，React 前端，Cloud Run 部署，异步任务
       模式（轮询/SSE，不用同步阻塞请求）
-- [ ] 确认验收标准 — 经多模型评审后已浮现具体方向，仍需在 `/spec` 阶段定出量化数字：
-      (1) 字数熔断阈值（标题字数上限、单条bullet字数上限、单页bullet条数上限）
-      (2) LLM 拆页规划的响应时间上限、JSON Schema 校验失败后的重试次数上限
-      (3) 调页数后重新生成的耗时上限
-      (4) 数据留存策略（GeneratedDeck 文件保留天数、下载链接访问范围、日志脱敏规则）
+- [x] 确认验收标准 — 量化数字已确认：
+      (1) 字数熔断阈值：标题 ≤18 字、单条 bullet ≤40 字、单页 bullet ≤5 条
+      (2) LLM 拆页规划响应时间上限 60 秒；JSON Schema 校验失败最多重试 2 次，第 3 次失败返回错误
+      (3) 调页数重新生成耗时上限 60 秒（同一 LLM 调用约束）
+      (4) 数据留存策略：GeneratedDeck 文件保留 7 天；下载链接为公开 URL（无需登录，MVP 阶段可用
+          带签名的 GCS URL）；日志不记录原始文案和生成内容，只记录任务 ID + 状态 + 耗时
 - [x] 确认领域模型核心实体 — Submission / SlidePlan(draft|confirmed) / SlidePlanItem
       (含 user_edited 标记) / GeneratedDeck
