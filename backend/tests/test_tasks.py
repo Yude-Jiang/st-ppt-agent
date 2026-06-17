@@ -255,6 +255,38 @@ def test_patch_compatible_archetype_ok(client):
 
 
 # ---------------------------------------------------------------------------
+# Test: status transitions — pending → draft → confirmed
+# ---------------------------------------------------------------------------
+
+def test_status_transitions_draft_then_confirmed(client):
+    """Verify real status transitions: planning done → draft, confirm → confirmed."""
+    with patch("backend.routes.tasks.asyncio.create_task"):
+        resp = client.post("/api/tasks", json={"text": "状态转换测试文案"})
+    task_id = resp.json()["task_id"]
+
+    # After submit, status is pending (planning not yet run)
+    data = client.get(f"/api/tasks/{task_id}").json()
+    assert data["status"] == "pending"
+    assert data["slide_plan"] is None
+
+    # Simulate planning completion by injecting plan directly
+    _inject_plan(client, task_id)
+
+    # After planning, task status should be draft and slide_plan.status should be draft
+    data = client.get(f"/api/tasks/{task_id}").json()
+    assert data["status"] == "draft"
+    assert data["slide_plan"]["status"] == "draft"
+
+    # Confirm the plan
+    confirm_resp = client.post(f"/api/tasks/{task_id}/confirm")
+    assert confirm_resp.status_code == 200
+
+    # After confirm, slide_plan.status should be confirmed
+    data = client.get(f"/api/tasks/{task_id}").json()
+    assert data["slide_plan"]["status"] == "confirmed"
+
+
+# ---------------------------------------------------------------------------
 # Test: GET /health
 # ---------------------------------------------------------------------------
 
