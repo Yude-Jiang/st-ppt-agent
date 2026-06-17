@@ -86,7 +86,7 @@ erDiagram
 | 数据源 | 类型 | 可信度 | 注意事项 |
 |--------|------|--------|---------|
 | 同事粘贴文案 | 用户输入（自由文本） | 低（未验证） | 可能含未公开产品/客户信息，需遵守日志脱敏规则 |
-| Claude API | LLM 推理 | 中（需 Schema 校验） | 输出需 Pydantic 校验，失败最多重试 2 次 |
+| DeepSeek API | LLM 推理 | 中（需 Schema 校验） | OpenAI-compatible；输出需 Pydantic 校验，失败最多重试 2 次 |
 | st-ppt-brand skill | 内部规则库 | 高（已验证） | brand-spec.md / layout-rules.md / 11 个 archetype builder 函数 |
 | Google Cloud Storage | 文件存储 | 高 | GeneratedDeck 存储，7 天自动删除，使用带签名 URL 提供下载 |
 
@@ -121,7 +121,7 @@ stateDiagram-v2
 
 | 系统 | 用途 | 认证方式 | 限制 |
 |------|------|---------|------|
-| Claude API | LLM 拆页规划（结构化 JSON 输出） | API Key via env | 响应时间上限 60 秒；Schema 校验失败最多重试 2 次 |
+| DeepSeek API | LLM 拆页规划（结构化 JSON 输出），OpenAI-compatible SDK，model ID `deepseek-chat` | API Key via env | 响应时间上限 60 秒；Schema 校验失败最多重试 2 次 |
 | st-ppt-brand skill | python-pptx builder 函数（渲染层） | 无（内部代码复用） | 11 个 archetype，不允许扩展 |
 | Google Cloud Storage | 存储 GeneratedDeck .pptx 文件 | Service Account / Workload Identity | asia-east1；文件 7 天 TTL；带签名 URL 公开下载（无需登录） |
 | Cloud Run | 部署 FastAPI/Flask 后端 | GCP IAM | port 8080；请求超时 5 分钟（可配置更长）；异步任务避免阻塞 |
