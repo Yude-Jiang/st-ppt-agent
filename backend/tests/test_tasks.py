@@ -184,3 +184,81 @@ def test_render_with_confirmed_status_returns_202(client):
     with patch("backend.routes.tasks.asyncio.create_task"):
         render_resp = client.post(f"/api/tasks/{task_id}/render")
     assert render_resp.status_code == 202
+
+
+# ---------------------------------------------------------------------------
+# Test: submit → query with same task_id (end-to-end chain)
+# ---------------------------------------------------------------------------
+
+def test_submit_then_query_same_task_id(client):
+    """Verify the submit→query chain uses the same real task_id and returns submission data."""
+    with patch("backend.routes.tasks.asyncio.create_task"):
+        resp = client.post("/api/tasks", json={"text": "端到端链路测试文案"})
+    assert resp.status_code == 202
+    task_id = resp.json()["task_id"]
+    assert task_id
+
+    get_resp = client.get(f"/api/tasks/{task_id}")
+    assert get_resp.status_code == 200
+    data = get_resp.json()
+    assert data["task_id"] == task_id
+    assert data["status"] in ("pending", "planning", "draft", "rendering", "done", "failed")
+    assert data["submission"]["text"] == "端到端链路测试文案"
+
+
+# ---------------------------------------------------------------------------
+# Test: validation — empty text and zero slides rejected at submission
+# ---------------------------------------------------------------------------
+
+def test_submit_empty_text_rejected(client):
+    resp = client.post("/api/tasks", json={"text": ""})
+    assert resp.status_code == 422
+
+
+def test_submit_zero_slides_rejected(client):
+    resp = client.post("/api/tasks", json={"text": "有效文案", "target_slides": 0})
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Test: archetype compatibility on PATCH
+# ---------------------------------------------------------------------------
+
+def test_patch_incompatible_archetype_returns_422(client):
+    with patch("backend.routes.tasks.asyncio.create_task"):
+        resp = client.post("/api/tasks", json={"text": "测试文案"})
+    task_id = resp.json()["task_id"]
+    _inject_plan(client, task_id)
+
+    # title-slide → title-bullets is NOT in ARCHETYPE_COMPAT["title-slide"]
+    patch_resp = client.patch(
+        f"/api/tasks/{task_id}/items/1",
+        json={"archetype": "title-bullets"}
+    )
+    assert patch_resp.status_code == 422
+    assert patch_resp.json()["detail"]["code"] == "INCOMPATIBLE_ARCHETYPE"
+
+
+def test_patch_compatible_archetype_ok(client):
+    with patch("backend.routes.tasks.asyncio.create_task"):
+        resp = client.post("/api/tasks", json={"text": "测试文案"})
+    task_id = resp.json()["task_id"]
+    _inject_plan(client, task_id)
+
+    # title-slide → section-divider IS compatible; keep existing title field
+    patch_resp = client.patch(
+        f"/api/tasks/{task_id}/items/1",
+        json={"archetype": "section-divider"}
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["archetype"] == "section-divider"
+
+
+# ---------------------------------------------------------------------------
+# Test: GET /health
+# ---------------------------------------------------------------------------
+
+def test_health(client):
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"
