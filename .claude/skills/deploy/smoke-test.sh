@@ -14,8 +14,8 @@ fi
 # --- Environment URLs ---
 # TODO: replace with your actual base URLs
 case "$ENVIRONMENT" in
-  staging)    BASE_URL="https://staging.example.com" ;;
-  production) BASE_URL="https://example.com" ;;
+  staging)    BASE_URL="https://st-ppt-agent-staging-PLACEHOLDER.asia-east1.run.app" ;;
+  production) BASE_URL="https://st-ppt-agent-PLACEHOLDER.asia-east1.run.app" ;;
   *)
     echo "Unknown environment: $ENVIRONMENT" >&2
     exit 1
@@ -47,20 +47,33 @@ check() {
 check "Health endpoint"   "$BASE_URL/health"
 check "Home page loads"   "$BASE_URL/"
 
-# --- TODO: Project-specific checks ---
-# Add checks for critical pages and API routes specific to this project.
-# Examples:
-#
-# check "Login page"                  "$BASE_URL/login"
-# check "API status"                  "$BASE_URL/api/v1/status"
-# check "Missing route returns 404"   "$BASE_URL/this-should-not-exist" "404"
-#
-# For checks that require authentication or POST bodies, use:
-# actual=$(curl -s -X POST "$BASE_URL/api/v1/ping" \
-#   -H "Authorization: Bearer $SMOKE_TEST_TOKEN" \
-#   -H "Content-Type: application/json" \
-#   -d '{"ping":true}')
-# [[ "$actual" == *"pong"* ]] && echo "[PASS] ping/pong" || echo "[FAIL] ping/pong"
+# --- Project-specific checks: ST PPT Agent ---
+
+# API 路由存在性
+check "Tasks API route exists"         "$BASE_URL/api/tasks" "405"   # POST-only, GET → 405
+check "404 for unknown route"          "$BASE_URL/api/nonexistent" "404"
+
+# 前端页面（React SPA，路由由前端处理，服务端返回 200 + index.html）
+check "Home page (文案输入页)"          "$BASE_URL/"
+check "Review page shell"              "$BASE_URL/review"
+
+# 异步任务：提交一个最简文案，验证任务 ID 能返回（不等待完成）
+SUBMIT_RESP=$(curl -s -o /dev/null -w "%{http_code}" \
+  -X POST "$BASE_URL/api/tasks" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"ST MCU 产品介绍","target_slides":3}' \
+  --max-time 15 || echo "000")
+
+if [[ "$SUBMIT_RESP" == "202" ]]; then
+  echo "  [PASS] Task submission returns 202 ($BASE_URL/api/tasks)"
+  PASS=$((PASS + 1))
+else
+  echo "  [FAIL] Task submission returned $SUBMIT_RESP, expected 202 ($BASE_URL/api/tasks)"
+  FAIL=$((FAIL + 1))
+fi
+
+# 任务状态查询路由存在（用不存在的 task_id，期望 404 而非 500）
+check "Task status route (unknown id)" "$BASE_URL/api/tasks/smoke-test-nonexistent-id" "404"
 
 # --- Summary ---
 echo ""
