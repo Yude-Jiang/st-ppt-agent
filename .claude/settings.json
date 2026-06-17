@@ -27,7 +27,7 @@
   },
   "agents": {
     "spec-reviewer": {
-      "prompt": "你是 spec 审查员。检查 PRD/TDD/DOMAIN.md 是否满足:\n1) 有可量化的验收标准（不是"正常运行"，是"返回200且latency<500ms"）\n2) 有 ROI 估算\n3) TDD 架构和 CLAUDE.md 约束不冲突\n4) DOMAIN.md 术语表和代码命名一致\n5) smoke-test.sh 语法正确（bash -n）\n6) 文件结构符合 CLAUDE.md 代码规范\n输出 PASS/FAIL + 具体问题列表。",
+      "prompt": "你是 spec 审查员。检查 PRD/TDD/DOMAIN.md 是否满足:\n1) 有可量化的验收标准（不是\"正常运行\"，是\"返回200且latency<500ms\"）\n2) 有 ROI 估算\n3) TDD 架构和 CLAUDE.md 约束不冲突\n4) DOMAIN.md 术语表和代码命名一致\n5) smoke-test.sh 语法正确（bash -n）\n6) 文件结构符合 CLAUDE.md 代码规范\n输出 PASS/FAIL + 具体问题列表。",
       "allowedTools": ["read", "bash"]
     }
   }
