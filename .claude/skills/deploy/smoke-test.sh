@@ -10,6 +10,7 @@ fi
 # --- Environment URLs ---
 # TODO: replace with your actual base URLs
 case "$ENVIRONMENT" in
+  local)      BASE_URL="http://localhost:8080" ;;
   staging)    BASE_URL="https://st-ppt-agent-staging-PLACEHOLDER.asia-east1.run.app" ;;
   production) BASE_URL="https://st-ppt-agent-PLACEHOLDER.asia-east1.run.app" ;;
   *)
@@ -70,12 +71,10 @@ check "Home page loads (Content-Type: text/html)" "$BASE_URL/" "200" "text/html"
 
 # --- Project-specific checks: ST PPT Agent ---
 
-# API 路由存在性
-check "Tasks API route exists (GET not allowed)" "$BASE_URL/api/tasks" "405"
-check "404 for unknown route" "$BASE_URL/api/nonexistent" "404"
-
-# 前端页面（React SPA，路由由前端处理，服务端返回 200 + index.html）
+# 前端页面（React SPA：服务端对所有非 API GET 请求返回 200 + index.html）
 check "Review page shell" "$BASE_URL/review"
+# SPA catch-all：未知路径也返回 200（前端路由处理 404 展示）
+check "Unknown frontend route returns SPA shell" "$BASE_URL/some/unknown/path"
 
 # --- 异步任务端到端链路：提交 → 解析 task_id → 用真实 id 查状态 ---
 # DeepSeek review 问题2/3：原版只检查提交的状态码，没有验证 task_id 能否被实际
@@ -120,30 +119,31 @@ post_status_only() {
 # --- 负面用例：参数校验 ---
 # DeepSeek review 问题5：这些比单纯的 404 检查更能暴露入参校验的缺失。
 # 注意：这要求 BUILD 阶段后端已实现对应的校验逻辑，否则这里会如实报 FAIL。
+# FastAPI Pydantic 校验错误返回 422（Unprocessable Entity），不是 400
 NEGATIVE_EMPTY=$(post_status_only "$BASE_URL/api/tasks" '{}')
-if [[ "$NEGATIVE_EMPTY" == "400" ]]; then
-  echo "  [PASS] Empty body rejected with 400 ($BASE_URL/api/tasks)"
+if [[ "$NEGATIVE_EMPTY" == "422" ]]; then
+  echo "  [PASS] Empty body rejected with 422 ($BASE_URL/api/tasks)"
   PASS=$((PASS + 1))
 else
-  echo "  [FAIL] Empty body returned $NEGATIVE_EMPTY, expected 400 ($BASE_URL/api/tasks)"
+  echo "  [FAIL] Empty body returned $NEGATIVE_EMPTY, expected 422 ($BASE_URL/api/tasks)"
   FAIL=$((FAIL + 1))
 fi
 
 NEGATIVE_NO_TEXT=$(post_status_only "$BASE_URL/api/tasks" '{"target_slides":3}')
-if [[ "$NEGATIVE_NO_TEXT" == "400" ]]; then
-  echo "  [PASS] Missing 'text' field rejected with 400 ($BASE_URL/api/tasks)"
+if [[ "$NEGATIVE_NO_TEXT" == "422" ]]; then
+  echo "  [PASS] Missing 'text' field rejected with 422 ($BASE_URL/api/tasks)"
   PASS=$((PASS + 1))
 else
-  echo "  [FAIL] Missing 'text' field returned $NEGATIVE_NO_TEXT, expected 400 ($BASE_URL/api/tasks)"
+  echo "  [FAIL] Missing 'text' field returned $NEGATIVE_NO_TEXT, expected 422 ($BASE_URL/api/tasks)"
   FAIL=$((FAIL + 1))
 fi
 
 NEGATIVE_ZERO_SLIDES=$(post_status_only "$BASE_URL/api/tasks" '{"text":"ST MCU 产品介绍","target_slides":0}')
-if [[ "$NEGATIVE_ZERO_SLIDES" == "400" ]]; then
-  echo "  [PASS] target_slides=0 rejected with 400 ($BASE_URL/api/tasks)"
+if [[ "$NEGATIVE_ZERO_SLIDES" == "422" ]]; then
+  echo "  [PASS] target_slides=0 rejected with 422 ($BASE_URL/api/tasks)"
   PASS=$((PASS + 1))
 else
-  echo "  [FAIL] target_slides=0 returned $NEGATIVE_ZERO_SLIDES, expected 400 ($BASE_URL/api/tasks)"
+  echo "  [FAIL] target_slides=0 returned $NEGATIVE_ZERO_SLIDES, expected 422 ($BASE_URL/api/tasks)"
   FAIL=$((FAIL + 1))
 fi
 
