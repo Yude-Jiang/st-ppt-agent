@@ -6,7 +6,9 @@ from typing import Any
 
 from openai import OpenAI
 from .models import SlidePlan, SlidePlanItem, ArchetypeEnum, ARCHETYPE_COMPAT
-from .builder.archetypes import ARCHETYPE_FIELD_SPECS
+from .builder.skill_loader import get_archetype_field_specs
+
+ARCHETYPE_FIELD_SPECS = get_archetype_field_specs()
 
 logger = logging.getLogger(__name__)
 
