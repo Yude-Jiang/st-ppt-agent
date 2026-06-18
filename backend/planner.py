@@ -22,8 +22,13 @@ ARCHETYPE_LIST = "\n".join([
 
 SYSTEM_PROMPT = f"""你是一个专业的 PPT 规划师，将用户提供的文案拆解为幻灯片分页规划。
 
-可用的 archetype 列表（必须从这11个中选择，不能使用其他值）：
+可用的 archetype 列表（必须从这12个中选择，不能使用其他值）：
 {ARCHETYPE_LIST}
+
+选型指引：
+- 需要展示系统架构、平台生态、分层关系图（多个节点+连线）时，使用 layered-diagram
+- layered-diagram 的 nodes 字段支持用 \\n 分隔主标题和副标题，例如 "平台名称\\n功能说明"
+- 普通文字内容优先用 title-bullets、two-column、three-column
 
 字数限制（必须严格遵守）：
 - 标题（title字段）：最多18字

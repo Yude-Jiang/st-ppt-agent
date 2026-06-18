@@ -20,6 +20,7 @@ class ArchetypeEnum(str, Enum):
     QUOTE_HIGHLIGHT = "quote-highlight"
     CONTENT_PLACEHOLDER = "content-placeholder"
     SECTION_DIVIDER = "section-divider"
+    LAYERED_DIAGRAM = "layered-diagram"
 
 
 # 用户切换 archetype 时，只允许切换到兼容项（字段结构相近）
@@ -35,6 +36,7 @@ ARCHETYPE_COMPAT: dict[str, list[str]] = {
     "quote-highlight": ["title-bullets", "section-divider"],
     "content-placeholder": ["title-image", "title-bullets"],
     "section-divider": ["title-slide", "quote-highlight"],
+    "layered-diagram": ["content-placeholder", "title-bullets"],
 }
 
 

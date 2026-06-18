@@ -1,4 +1,4 @@
-"""python-pptx renderer for 11 ST brand archetypes.
+"""python-pptx renderer for ST brand archetypes.
 
 Uses ST brand palette and builders from brand.py (sourced from
 st-ppt-brand/references/pptx-implementation.md).
@@ -17,6 +17,7 @@ from .brand import (
     RECT, fill, no_autofit, style_runs,
     add_message_bar, add_shaded_box, add_cards_row, add_comparison, add_process_flow,
 )
+from .diagram import render_layered_diagram
 
 W = Inches(13.333)
 H = Inches(7.5)
@@ -222,6 +223,7 @@ _RENDERERS = {
     "cards-row": _render_cards_row,
     "quote-highlight": _render_quote_highlight,
     "content-placeholder": _render_content_placeholder,
+    "layered-diagram": render_layered_diagram,
 }
 
 

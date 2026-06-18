@@ -25,4 +25,13 @@ ARCHETYPE_FIELD_SPECS: dict[str, str] = {
     "quote-highlight": '{"quote": "引用文字（≤40字）", "attribution": "来源或署名（可选）"}',
     "content-placeholder": '{"title": "最多18字", "placeholder_hint": "此处建议放置XXX图表/架构图"}',
     "section-divider": '{"title": "最多18字的章节标题", "subtitle": "可选副标题"}',
+    "layered-diagram": (
+        '{"title": "最多18字（关系图标题）", '
+        '"layers": [{'
+        '"nodes": ["节点名称（用\\\\n分隔主标题和副标题，如：平台名称\\\\n说明文字）"], '
+        '"color": "dark_blue|yellow|light_blue|gray", '
+        '"note": "层级说明文字（可选，显示在行下方）", '
+        '"side_nodes": ["右侧附属小节点（可选）"], '
+        '"is_future": false}]}'
+    ),
 }
